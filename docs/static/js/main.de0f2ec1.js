@@ -57,7 +57,7 @@
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/";
+/******/ 	__webpack_require__.p = "/raj-react-realworld/";
 /******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 13);
@@ -3904,4 +3904,4 @@ getTags:mutation(function(){return['get','/tags'];})};}function createSimpleRemo
 
 /***/ })
 /******/ ]);
-//# sourceMappingURL=main.00c84eff.js.map
+//# sourceMappingURL=main.de0f2ec1.js.map
