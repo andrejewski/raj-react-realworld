@@ -1,0 +1,22 @@
+{
+  "name": "raj-react-realworld",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "raj-compose": "0.0.6",
+    "raj-react": "0.0.4",
+    "raj-spa": "0.0.13",
+    "raj-subscription": "0.0.1",
+    "react": "^16.4.0",
+    "react-dom": "^16.4.0",
+    "react-scripts": "1.1.4",
+    "tagged-routes": "0.0.3",
+    "tagmeme": "0.0.7"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
