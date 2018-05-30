@@ -270,7 +270,7 @@ if (true) {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return router; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_tagged_routes__ = __webpack_require__(37);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_tagged_routes___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_tagged_routes__);
-var routes=Object(__WEBPACK_IMPORTED_MODULE_0_tagged_routes__["createRoutes"])({Home:'/',Login:'/login',Logout:'/logout',Register:'/register',Settings:'/settings',ArticleCreate:'/editor',ArticleEdit:'/editor/:articleSlug',ArticleView:'/article/:articleSlug',Profile:'/profile/:username',ProfileFavorites:'/profile/:username/favorites'},'NotFound');var Route=routes.Route;var urlPrefix='/#';function getRouteForURL(url){return routes.getRouteForURL(url.slice(urlPrefix.length));}function getURLForRoute(route){return urlPrefix+routes.getURLForRoute(route);}var router={emit:function emit(route){return function(){window.location.hash=getURLForRoute(route).slice(urlPrefix.length);};},subscribe:function subscribe(){var listener=void 0;return{effect:function effect(dispatch){listener=function listener(){return dispatch(routes.getRouteForURL(window.location.hash.slice(1)));};window.addEventListener('hashchange',listener);listener();// dispatch initial route
+var routes=Object(__WEBPACK_IMPORTED_MODULE_0_tagged_routes__["createRoutes"])({Home:'/',Login:'/login',Logout:'/logout',Register:'/register',Settings:'/settings',ArticleCreate:'/editor',ArticleEdit:'/editor/:articleSlug',ArticleView:'/article/:articleSlug',Profile:'/profile/:username',ProfileFavorites:'/profile/:username/favorites'},'NotFound');var Route=routes.Route;var urlPrefix='#';function getRouteForURL(url){return routes.getRouteForURL(url.slice(urlPrefix.length));}function getURLForRoute(route){return urlPrefix+routes.getURLForRoute(route);}var router={emit:function emit(route){return function(){window.location.hash=getURLForRoute(route).slice(urlPrefix.length);};},subscribe:function subscribe(){var listener=void 0;return{effect:function effect(dispatch){listener=function listener(){return dispatch(routes.getRouteForURL(window.location.hash.slice(1)));};window.addEventListener('hashchange',listener);listener();// dispatch initial route
 },cancel:function cancel(){window.removeEventListener('hashchange',listener);}};}};
 
 /***/ }),
@@ -3904,4 +3904,4 @@ getTags:mutation(function(){return['get','/tags'];})};}function createSimpleRemo
 
 /***/ })
 /******/ ]);
-//# sourceMappingURL=main.de0f2ec1.js.map
+//# sourceMappingURL=main.8d6f49ad.js.map

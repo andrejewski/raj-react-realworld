@@ -18,7 +18,7 @@ const routes = createRoutes(
 
 export const Route = routes.Route
 
-const urlPrefix = '/#'
+const urlPrefix = '#'
 
 export function getRouteForURL (url) {
   return routes.getRouteForURL(url.slice(urlPrefix.length))
