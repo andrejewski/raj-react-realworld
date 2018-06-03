@@ -2,6 +2,7 @@ import React from 'react'
 import spa from 'raj-spa'
 import { batchPrograms } from 'raj-compose'
 import { makeProgram as makeHeaderProgram } from './header'
+import { makeProgram as makeHomeProgram } from './home'
 import { makeProgram as makeLoginProgram } from './login'
 import { makeProgram as makeLogoutProgram } from './logout'
 import { makeProgram as makeRegisterProgram } from './register'
@@ -15,10 +16,11 @@ function footerView () {
   return (
     <footer>
       <div className='container'>
-        <a href='/' className='logo-font'>conduit</a>
+        <a href='/' className='logo-font'>
+          conduit
+        </a>
         <span className='attribution'>
-          An interactive learning project from
-          {' '}
+          An interactive learning project from{' '}
           <a href='https://thinkster.io'>Thinkster</a>
           . Code & design licensed under MIT.
         </span>
@@ -87,6 +89,7 @@ function makePageProgram ({ dataOptions }) {
       const makeProgram = Route.match(
         route,
         {
+          Home: () => makeHomeProgram,
           Login: () => makeLoginProgram,
           Logout: () => makeLogoutProgram,
           Register: () => makeRegisterProgram,

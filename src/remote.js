@@ -13,11 +13,13 @@ const store = {
 
 const network = {
   sendRequest: ({ method, url, query, body, headers }) =>
-    fetch(query ? `${url}?${qs.stringify(query)}` : url, {
-      method,
-      body: JSON.stringify(body),
-      headers: { 'content-type': 'application/json', ...headers }
-    }).then(res => res.json())
+    window
+      .fetch(query ? `${url}?${qs.stringify(query)}` : url, {
+        method,
+        body: JSON.stringify(body),
+        headers: { 'content-type': 'application/json', ...headers }
+      })
+      .then(res => res.json())
 }
 
 function resultFromPromise (promise, dispatch) {
@@ -181,15 +183,15 @@ function createRemote ({
 
     deleteArticle: mutation(({ slug }) => ['delete', `/articles/${slug}`]),
 
-    favoriteArticle: mutation(({ slug }) => [
-      'post',
-      `/articles/${slug}/favorite`
-    ]),
+    favoriteArticle: mutation(
+      ({ slug }) => ['post', `/articles/${slug}/favorite`],
+      resp => resp && resp.article
+    ),
 
-    unfavoriteArticle: mutation(({ slug }) => [
-      'delete',
-      `/articles/${slug}/favorite`
-    ]),
+    unfavoriteArticle: mutation(
+      ({ slug }) => ['delete', `/articles/${slug}/favorite`],
+      resp => resp && resp.article
+    ),
 
     // Comments
 
@@ -212,7 +214,7 @@ function createRemote ({
 
     // Tags
 
-    getTags: mutation(() => ['get', '/tags'])
+    getTags: mutation(() => ['get', '/tags'], resp => resp && resp.tags)
   }
 }
 

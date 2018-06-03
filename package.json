@@ -1,7 +1,7 @@
 {
   "name": "raj-react-realworld",
+  "description": "RealWorld app written in Raj and React",
   "version": "0.0.1",
-  "private": true,
   "dependencies": {
     "raj-compose": "0.0.6",
     "raj-react": "0.0.4",
@@ -13,11 +13,21 @@
     "tagged-routes": "0.0.3",
     "tagmeme": "0.0.7"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build ; rm -rf ./docs ; mv build docs",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+  "devDependencies": {
+    "fixpack": "^2.3.1",
+    "prettier": "^1.13.2",
+    "raj-web-debugger": "0.0.3",
+    "standard": "^11.0.1"
   },
-  "homepage": "https://jew.ski/raj-react-realworld/"
+  "homepage": "https://jew.ski/raj-react-realworld/",
+  "main": "src/index.js",
+  "private": true,
+  "scripts": {
+    "build": "react-scripts build ; rm -rf ./docs ; mv build docs",
+    "eject": "react-scripts eject",
+    "lint": "prettier --write 'src/**/*.js' && standard 'src/**/*.js' --fix && fixpack",
+    "precommit": "npm run lint",
+    "start": "react-scripts start",
+    "test": "react-scripts test --env=jsdom"
+  }
 }

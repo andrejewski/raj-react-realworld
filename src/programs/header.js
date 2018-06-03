@@ -81,45 +81,43 @@ function view ({ route, viewer }) {
   return (
     <nav className='navbar navbar-light'>
       <div className='container'>
-        <a className='navbar-brand' href={homeUrl}>conduit</a>
+        <a className='navbar-brand' href={homeUrl}>
+          conduit
+        </a>
         <ul className='nav navbar-nav pull-xs-right'>
-          {viewer
-            ? <React.Fragment>
+          {viewer ? (
+            <React.Fragment>
               <NavLink route='Home'>Home</NavLink>
               <NavLink route='ArticleCreate'>
                 <i className='ion-compose' />&nbsp;New Post
-                </NavLink>
+              </NavLink>
               <NavLink route='Settings'>
                 <i className='ion-gear-a' />&nbsp;Settings
-                </NavLink>
+              </NavLink>
               <NavLink
                 route='Profile'
                 routeParams={{ username: viewer.username }}
-                >
+              >
                 <img
                   className='user-pic'
                   alt={viewer.username}
                   src={
-                      viewer.pic ||
-                        'https://static.productionready.io/images/smiley-cyrus.jpg'
-                    }
-                  />
-                  &nbsp;
+                    viewer.pic ||
+                    'https://static.productionready.io/images/smiley-cyrus.jpg'
+                  }
+                />
+                &nbsp;
                 {viewer.username}
               </NavLink>
-              <NavLink route='Logout'>
-                  Sign out
-                </NavLink>
+              <NavLink route='Logout'>Sign out</NavLink>
             </React.Fragment>
-            : <React.Fragment>
+          ) : (
+            <React.Fragment>
               <NavLink route='Home'>Home</NavLink>
-              <NavLink route='Login'>
-                  Sign in
-                </NavLink>
-              <NavLink route='Register'>
-                  Sign up
-                </NavLink>
-            </React.Fragment>}
+              <NavLink route='Login'>Sign in</NavLink>
+              <NavLink route='Register'>Sign up</NavLink>
+            </React.Fragment>
+          )}
         </ul>
       </div>
     </nav>
