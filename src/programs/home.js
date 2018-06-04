@@ -115,7 +115,7 @@ function logic (data) {
       },
       FavoritedArticle: ({ error, data: newArticle }) =>
         error
-          ? []
+          ? [model]
           : [
             {
               ...model,
