@@ -3,6 +3,7 @@ import { union } from 'tagmeme'
 import { assembleProgram, mapEffect } from 'raj-compose'
 import { withSubscriptions, mapSubscription } from 'raj-subscription'
 import { Route, getURLForRoute } from '../routing'
+import { Form } from '../views'
 
 export function makeProgram ({ dataOptions }) {
   return withSubscriptions(
@@ -84,12 +85,7 @@ function view (model, dispatch) {
                 ))}
               </ul> */}
 
-            <form
-              onSubmit={e => {
-                e.preventDefault()
-                dispatch(Msg.SignIn())
-              }}
-            >
+            <Form onSubmit={() => dispatch(Msg.SignIn())}>
               <fieldset className='form-group'>
                 <input
                   className='form-control form-control-lg'
@@ -118,7 +114,7 @@ function view (model, dispatch) {
               >
                 Sign up
               </button>
-            </form>
+            </Form>
           </div>
         </div>
       </div>

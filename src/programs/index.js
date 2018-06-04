@@ -6,6 +6,7 @@ import { makeProgram as makeHomeProgram } from './home'
 import { makeProgram as makeLoginProgram } from './login'
 import { makeProgram as makeLogoutProgram } from './logout'
 import { makeProgram as makeRegisterProgram } from './register'
+import { makeProgram as makeSettingsProgram } from './settings'
 import { Route } from '../routing'
 import notFoundImage from '../stump.jpg'
 import notImplementedImage from '../innovation.jpg'
@@ -93,7 +94,8 @@ function makePageProgram ({ dataOptions }) {
           Login: () => makeLoginProgram,
           Logout: () => makeLogoutProgram,
           Register: () => makeRegisterProgram,
-          NotFound: () => makeNotFoundProgram
+          NotFound: () => makeNotFoundProgram,
+          Settings: () => makeSettingsProgram
         },
         () => makeNotImplementedProgram
       )

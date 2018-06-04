@@ -55,13 +55,14 @@ function createRemote ({
     }
   }
 
-  function setViewer (viewer) {
+  function setViewer (res) {
+    const viewer = res.user
     currentViewer = viewer
     viewerListeners.forEach(listener => listener(viewer))
   }
 
   function setViewerAndToken (response) {
-    setViewer(response.user)
+    setViewer(response)
     store.setAuthToken(response.user.token)
     return response
   }
@@ -69,7 +70,7 @@ function createRemote ({
   const getViewer = mutation(
     () => ['get', '/user'],
     res => {
-      setViewer(res.user)
+      setViewer(res)
       return res
     }
   )()
@@ -99,7 +100,7 @@ function createRemote ({
 
     signOut: () => {
       store.deleteAuthToken()
-      setViewer(null)
+      setViewer({ viewer: null })
     },
 
     // Viewer
