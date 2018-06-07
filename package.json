@@ -3,10 +3,10 @@
   "description": "RealWorld app written in Raj and React",
   "version": "0.0.1",
   "dependencies": {
-    "raj-compose": "0.0.6",
+    "raj-compose": "0.0.7",
     "raj-react": "0.0.4",
-    "raj-spa": "0.0.13",
-    "raj-subscription": "0.0.1",
+    "raj-spa": "^0.0.14",
+    "raj-subscription": "0.0.2",
     "react": "^16.4.0",
     "react-dom": "^16.4.0",
     "react-scripts": "1.1.4",
