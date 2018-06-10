@@ -1,4 +1,5 @@
 import React from 'react'
+import { Route, getURLForRoute } from './routing'
 
 export class Form extends React.Component {
   render () {
@@ -15,4 +16,94 @@ export class Form extends React.Component {
       />
     )
   }
+}
+
+function TabLink ({ isActive, onClick, children }) {
+  return (
+    <li className='nav-item'>
+      <a
+        {...{
+          className: isActive ? 'nav-link active' : 'nav-link',
+          onClick: event => {
+            event.preventDefault()
+            onClick()
+          }
+        }}
+      >
+        {children}
+      </a>
+    </li>
+  )
+}
+
+export function userPicture (userImage) {
+  return (
+    userImage || 'https://static.productionready.io/images/smiley-cyrus.jpg'
+  )
+}
+
+export function timestamp (dateLike) {
+  const date = new Date(dateLike)
+  const month = date.toLocaleString('en-us', { month: 'long' })
+  const day = date.getDate()
+  const year = date.getFullYear()
+  return `${month} ${day}, ${year}`
+}
+
+export function ArticleList ({ articles, onFavorite }) {
+  return articles.map(article => {
+    const authorProfileUrl = getURLForRoute(
+      Route.Profile({
+        routeParams: { username: article.author.username }
+      })
+    )
+    const articleUrl = getURLForRoute(
+      Route.ArticleView({
+        routeParams: { articleSlug: article.slug }
+      })
+    )
+    return (
+      <div key={article.slug} className='article-preview'>
+        <div className='article-meta'>
+          <a href={authorProfileUrl}>
+            <img
+              src={userPicture(article.author.image)}
+              alt={article.author.username}
+            />
+          </a>
+          <div className='info'>
+            <a href={authorProfileUrl} className='author'>
+              {article.author.username}
+            </a>
+            <span className='date'>
+              {timestamp(article.createdAt)}
+            </span>
+          </div>
+          <button
+            {...{
+              className: `btn ${article.favorited ? 'btn-primary' : 'btn-outline-primary'} btn-sm pull-xs-right`,
+              onClick: () => onFavorite(article.slug)
+            }}
+          >
+            <i className='ion-heart' /> {article.favoritesCount}
+          </button>
+        </div>
+        <a href={articleUrl} className='preview-link'>
+          <h1>{article.title}</h1>
+          <p>{article.description}</p>
+          <span>Read more...</span>
+        </a>
+      </div>
+    )
+  })
+}
+
+export function TabList ({ tabs }) {
+  return (
+    <div className='feed-toggle'>
+      <ul className='nav nav-pills outline-active'>
+        {tabs.map(tab => <TabLink {...tab} />)}
+      </ul>
+    </div>
+  )
 }

@@ -10,8 +10,7 @@ const routes = createRoutes(
     ArticleCreate: '/editor',
     ArticleEdit: '/editor/:articleSlug',
     ArticleView: '/article/:articleSlug',
-    Profile: '/profile/:username',
-    ProfileFavorites: '/profile/:username/favorites'
+    Profile: '/profile/:username'
   },
   'NotFound'
 )

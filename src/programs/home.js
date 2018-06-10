@@ -2,7 +2,7 @@ import React from 'react'
 import { withSubscriptions, mapSubscription } from 'raj-subscription'
 import { assembleProgram, mapEffect, batchEffects } from 'raj-compose'
 import { union } from 'tagmeme'
-import { Route, getURLForRoute } from '../routing'
+import { ArticleList, TabList } from '../views'
 
 export function makeProgram ({ dataOptions }) {
   return withSubscriptions(
@@ -89,7 +89,7 @@ function logic (data) {
       SetTags: ({ data: tags }) => [{ ...model, tags }],
       SetViewer: viewer => [{ ...model, viewer }],
       SetArticles: ({ error, data }) =>
-        error
+        (error
           ? [model]
           : [
             {
@@ -97,7 +97,7 @@ function logic (data) {
               articles: data.articles,
               articleCount: data.articlesCount
             }
-          ],
+          ]),
       SetPageIndex: pageIndex => fetch({ ...model, pageIndex }),
       FavoriteArticle: articleSlug => {
         const article = model.articles.find(
@@ -114,17 +114,17 @@ function logic (data) {
         ]
       },
       FavoritedArticle: ({ error, data: newArticle }) =>
-        error
+        (error
           ? [model]
           : [
             {
               ...model,
               articles: model.articles.map(
-                article =>
-                  article.slug === newArticle.slug ? newArticle : article
-              )
+                  article =>
+                    (article.slug === newArticle.slug ? newArticle : article)
+                )
             }
-          ]
+          ])
     })
   }
 
@@ -133,30 +133,6 @@ function logic (data) {
   })
 
   return { init, update, subscriptions }
-}
-
-function TabLink ({ isActive, onClick, children }) {
-  return (
-    <li className='nav-item'>
-      <a
-        {...{
-          className: isActive ? 'nav-link active' : 'nav-link',
-          onClick: () => onClick(),
-          href: 'javascript:void(0);'
-        }}
-      >
-        {children}
-      </a>
-    </li>
-  )
-}
-
-function timestamp (dateLike) {
-  const date = new Date(dateLike)
-  const month = date.toLocaleString('en-us', { month: 'long' })
-  const day = date.getDate()
-  const year = date.getFullYear()
-  return `${month} ${day}, ${year}`
 }
 
 function view (model, dispatch) {
@@ -172,94 +148,43 @@ function view (model, dispatch) {
       <div className='container page'>
         <div className='row'>
           <div className='col-md-9'>
-            <div className='feed-toggle'>
-              <ul className='nav nav-pills outline-active'>
-                {model.viewer && (
-                  <TabLink
-                    {...{
-                      isActive: model.tab === 'feed',
-                      onClick: () => dispatch(Msg.SelectFeed()),
-                      children: 'Your Feed'
-                    }}
-                  />
-                )}
-                <TabLink
-                  {...{
+            <TabList
+              {...{
+                tabs: [
+                  model.viewer && {
+                    key: 'feed',
+                    isActive: model.tab === 'feed',
+                    onClick: () => dispatch(Msg.SelectFeed()),
+                    children: 'Your Feed'
+                  },
+                  {
+                    key: 'global',
                     isActive: model.tab === 'global',
                     onClick: () => dispatch(Msg.SelectGlobal()),
                     children: 'Global Feed'
-                  }}
-                />
-                {model.tag && (
-                  <TabLink
-                    {...{
-                      isActive: model.tab === 'tag',
-                      onClick: () => {},
-                      children: `#${model.tag}`
-                    }}
-                  />
-                )}
-              </ul>
-            </div>
+                  },
+                  model.tag && {
+                    key: 'tag',
+                    isActive: model.tab === 'tag',
+                    onClick: () => {},
+                    children: `#${model.tag}`
+                  }
+                ].filter(x => x)
+              }}
+            />
 
-            {model.articles.map(article => {
-              const authorProfileUrl = getURLForRoute(
-                Route.Profile({
-                  routeParams: { username: article.author.username }
-                })
-              )
-              const articleUrl = getURLForRoute(
-                Route.ArticleView({
-                  routeParams: { articleSlug: article.slug }
-                })
-              )
-              return (
-                <div key={article.slug} className='article-preview'>
-                  <div className='article-meta'>
-                    <a href={authorProfileUrl}>
-                      <img
-                        {...{
-                          src:
-                            article.author.image ||
-                            'https://static.productionready.io/images/smiley-cyrus.jpg',
-                          alt: article.author.username
-                        }}
-                      />
-                    </a>
-                    <div className='info'>
-                      <a href={authorProfileUrl} className='author'>
-                        {article.author.username}
-                      </a>
-                      <span className='date'>
-                        {timestamp(article.createdAt)}
-                      </span>
-                    </div>
-                    <button
-                      {...{
-                        className: `btn ${
-                          article.favorited
-                            ? 'btn-primary'
-                            : 'btn-outline-primary'
-                        } btn-sm pull-xs-right`,
-                        onClick: () =>
-                          dispatch(Msg.FavoriteArticle(article.slug))
-                      }}
-                    >
-                      <i className='ion-heart' /> {article.favoritesCount}
-                    </button>
-                  </div>
-                  <a href={articleUrl} className='preview-link'>
-                    <h1>{article.title}</h1>
-                    <p>{article.description}</p>
-                    <span>Read more...</span>
-                  </a>
-                </div>
-              )
-            })}
+            <ArticleList
+              {...{
+                articles: model.articles,
+                onFavorite (articleSlug) {
+                  dispatch(Msg.FavoriteArticle(articleSlug))
+                }
+              }}
+            />
           </div>
 
           <div className='col-md-3'>
-            {model.tags.length > 0 && (
+            {model.tags.length > 0 &&
               <div className='sidebar'>
                 <p>Popular Tags</p>
 
@@ -268,8 +193,10 @@ function view (model, dispatch) {
                     <a
                       {...{
                         key: tag,
-                        href: 'javascript:void(0);',
-                        onClick: () => dispatch(Msg.SelectTag(tag)),
+                        onClick: event => {
+                          event.preventDefault()
+                          dispatch(Msg.SelectTag(tag))
+                        },
                         className: 'tag-pill tag-default'
                       }}
                     >
@@ -277,8 +204,7 @@ function view (model, dispatch) {
                     </a>
                   ))}
                 </div>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { makeProgram as makeLoginProgram } from './login'
 import { makeProgram as makeLogoutProgram } from './logout'
 import { makeProgram as makeRegisterProgram } from './register'
 import { makeProgram as makeSettingsProgram } from './settings'
+import { makeProgram as makeProfileProgram } from './profile'
 import { Route } from '../routing'
 import notFoundImage from '../stump.jpg'
 import notImplementedImage from '../innovation.jpg'
@@ -87,19 +88,20 @@ function makePageProgram ({ dataOptions }) {
     router: dataOptions.router,
     initialProgram: blankProgram,
     getRouteProgram (route) {
-      const makeProgram = Route.match(
+      return Route.match(
         route,
         {
-          Home: () => makeHomeProgram,
-          Login: () => makeLoginProgram,
-          Logout: () => makeLogoutProgram,
-          Register: () => makeRegisterProgram,
-          NotFound: () => makeNotFoundProgram,
-          Settings: () => makeSettingsProgram
+          Home: () => makeHomeProgram({ dataOptions }),
+          Login: () => makeLoginProgram({ dataOptions }),
+          Logout: () => makeLogoutProgram({ dataOptions }),
+          Register: () => makeRegisterProgram({ dataOptions }),
+          NotFound: () => makeNotFoundProgram({ dataOptions }),
+          Settings: () => makeSettingsProgram({ dataOptions }),
+          Profile: ({ routeParams: { username } }) =>
+            makeProfileProgram({ dataOptions, username })
         },
-        () => makeNotImplementedProgram
+        () => makeNotImplementedProgram({ dataOptions })
       )
-      return makeProgram({ dataOptions })
     }
   })
 }

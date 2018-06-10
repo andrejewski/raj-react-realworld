@@ -177,21 +177,22 @@ function createAPI ({ baseUrl, tokenStore, network, alerts }) {
     ),
 
     // Users
+    getUser: mutation(
+      ({ username }) => ['get', `/profiles/${username}`],
+      resp => resp && resp.profile
+    ),
 
-    getUser: mutation(({ username }) => ['get', `/profiles/${username}`]),
+    followUser: mutation(
+      ({ username }) => ['post', `/profiles/${username}/follow`],
+      resp => resp && resp.profile
+    ),
 
-    followUser: mutation(({ username }) => [
-      'post',
-      `/profiles/${username}/follow`
-    ]),
-
-    unfollowUser: mutation(({ username }) => [
-      'delete',
-      `/profiles/${username}/follow`
-    ]),
+    unfollowUser: mutation(
+      ({ username }) => ['delete', `/profiles/${username}/follow`],
+      resp => resp && resp.profile
+    ),
 
     // Articles
-
     getArticle: mutation(({ slug }) => ['get', `/articles/${slug}`]),
 
     getArticles: mutation(({ tag, author, favorited, limit, offset }) => [
@@ -233,7 +234,6 @@ function createAPI ({ baseUrl, tokenStore, network, alerts }) {
     ),
 
     // Comments
-
     getArticleComments: mutation(({ slug }) => [
       'get',
       `/articles/${slug}/comments`
@@ -252,7 +252,6 @@ function createAPI ({ baseUrl, tokenStore, network, alerts }) {
     ]),
 
     // Tags
-
     getTags: mutation(() => ['get', '/tags'], resp => resp && resp.tags)
   }
 }
