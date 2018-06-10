@@ -3,13 +3,13 @@ import ReactDOM from 'react-dom'
 import { program } from 'raj-react'
 import { makeProgram as makeAppProgram } from './programs'
 import { router } from './routing'
-import { createSimpleRemote } from './remote'
+import { createRemote } from './remote'
 
 if (!window.location.hash) {
   window.location.hash = '/'
 }
 
-const remote = createSimpleRemote({
+const remote = createRemote({
   baseUrl: 'https://conduit.productionready.io/api'
 })
 

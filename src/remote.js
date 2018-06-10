@@ -1,69 +1,109 @@
 import qs from 'querystring'
 
-const authTokenKey = 'authToken'
-const store = {
-  getAuthToken: () => window.localStorage.getItem(authTokenKey),
-  setAuthToken: token => {
-    window.localStorage.setItem(authTokenKey, token)
-  },
-  deleteAuthToken: () => {
-    window.localStorage.removeItem(authTokenKey)
+function createTokenStore ({ storage, storageKey }) {
+  return {
+    getToken: () => storage.getItem(storageKey),
+    setToken: token => {
+      storage.setItem(storageKey, token)
+    },
+    deleteToken () {
+      storage.removeItem(storageKey)
+    }
   }
 }
 
-const network = {
+const createNetwork = ({ fetch }) => ({
   sendRequest: ({ method, url, query, body, headers }) =>
-    window
-      .fetch(query ? `${url}?${qs.stringify(query)}` : url, {
-        method,
-        body: JSON.stringify(body),
-        headers: { 'content-type': 'application/json', ...headers }
-      })
-      .then(res => res.json())
+    fetch(query ? `${url}?${qs.stringify(query)}` : url, {
+      method,
+      body: JSON.stringify(body),
+      headers: { 'content-type': 'application/json', ...headers }
+    }).then(res => res.json())
+})
+
+function createAtom (value) {
+  let listeners = []
+  return {
+    getValue: () => value,
+    updateValue (updateFn) {
+      value = updateFn(value)
+      listeners.forEach(l => l(value))
+    },
+    getSubscription () {
+      let listener
+      return {
+        effect (dispatch) {
+          listener = dispatch
+          listeners.push(listener)
+          listener(value)
+        },
+        cancel () {
+          listeners = listeners.filter(l => l !== listener)
+        }
+      }
+    }
+  }
+}
+
+function createAlertService ({ defaultAlerts }) {
+  const atom = createAtom(defaultAlerts)
+  return {
+    watchAlerts: atom.getSubscription,
+    addAlert: ({ key, type, title, description }) => {
+      atom.updateValue(alerts =>
+        alerts
+          .filter(alert => alert.key !== key)
+          .shift({ key, type, title, description })
+      )
+    },
+
+    removeAlert: ({ key }) => {
+      atom.updateValue(alerts => alerts.filter(alert => alert.key !== key))
+    }
+  }
 }
 
 function resultFromPromise (promise, dispatch) {
-  promise.then(data => dispatch({ data })).catch(error => dispatch({ error }))
+  return promise
+    .then(data => dispatch({ data }))
+    .catch(error => dispatch({ error }))
 }
 
-function getAuthHeaders (store) {
-  const token = store.getAuthToken()
-  if (token) {
-    return { authorization: `Token ${token}` }
-  }
-}
-
-function createRemote ({
-  baseUrl,
-  store,
-  network,
-  currentViewer,
-  viewerListeners = []
-}) {
-  function mutation (handler, transform) {
-    const baseHeaders = getAuthHeaders(store)
+function createAPI ({ baseUrl, tokenStore, network, alerts }) {
+  function mutation (getRequestFromProps, transform) {
     return props => dispatch => {
-      const [method, path, query, body, headers] = handler(props)
-      const promise = network.sendRequest({
-        method: method,
+      const token = tokenStore.getToken()
+      const baseHeaders = token && { authorization: `Token ${token}` }
+      const [method, path, query, body, headers] = getRequestFromProps(props)
+      const responsePromise = network.sendRequest({
         url: baseUrl + path,
+        method,
         query,
         body,
         headers: { ...baseHeaders, ...headers }
       })
-      return resultFromPromise(promise.then(transform || (x => x)), dispatch)
+
+      const payloadPromise = responsePromise
+        .catch(error => {
+          // TODO: create global alerts for network/auth errors
+          // TODO: coerce validation errors into an interface
+          throw error
+        })
+        .then(transform || (x => x))
+
+      return resultFromPromise(payloadPromise, dispatch)
     }
   }
 
+  const viewerAtom = createAtom(null)
+
   function setViewer (res) {
-    const viewer = res.user
-    currentViewer = viewer
-    viewerListeners.forEach(listener => listener(viewer))
+    viewerAtom.updateValue(() => res.user)
   }
 
   function setViewerAndToken (response) {
     setViewer(response)
-    store.setAuthToken(response.user.token)
+    tokenStore.setToken(response.user.token)
     return response
   }
 
@@ -75,9 +115,15 @@ function createRemote ({
     }
   )()
 
-  return {
-    // Authentication
+  const asEffect = fn => (...args) => () => fn(...args)
 
+  return {
+    // Alerts
+    watchAlerts: alerts.watchAlerts,
+    addAlert: asEffect(alerts.addAlert),
+    removeAlert: asEffect(alerts.removeAlert),
+
+    // Authentication
     signIn: mutation(
       ({ email, password }) => [
         'post',
@@ -99,32 +145,24 @@ function createRemote ({
     ),
 
     signOut: () => {
-      store.deleteAuthToken()
+      tokenStore.deleteToken()
       setViewer({ viewer: null })
     },
 
     // Viewer
-
-    getViewer,
-
     watchViewer: () => {
-      let listener
+      const { effect, cancel } = viewerAtom.getSubscription()
       return {
         effect (dispatch) {
-          listener = dispatch
-          viewerListeners.push(listener)
-
-          const shouldLoad = !currentViewer && store.getAuthToken()
+          const shouldLoad = !viewerAtom.getValue() && tokenStore.getToken()
           if (shouldLoad) {
             const ignorePayload = () => {}
             getViewer(ignorePayload)
           }
 
-          dispatch(currentViewer)
+          effect(dispatch)
         },
-        cancel () {
-          viewerListeners = viewerListeners.filter(l => l !== listener)
-        }
+        cancel
       }
     },
 
@@ -219,6 +257,15 @@ function createRemote ({
   }
 }
 
-export function createSimpleRemote ({ baseUrl }) {
-  return createRemote({ baseUrl, store, network })
+export function createRemote ({
+  baseUrl,
+  defaultAlerts = [],
+  fetch = window.fetch,
+  storage = window.localStorage,
+  storageKey = 'authToken'
+}) {
+  const alerts = createAlertService({ defaultAlerts })
+  const network = createNetwork({ fetch })
+  const tokenStore = createTokenStore({ storage, storageKey })
+  return createAPI({ baseUrl, alerts, network, tokenStore })
 }
