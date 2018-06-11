@@ -2,7 +2,8 @@ import React from 'react'
 import { union } from 'tagmeme'
 import { withSubscriptions, mapSubscription } from 'raj-subscription'
 import { assembleProgram, mapEffect } from 'raj-compose'
-import { Form } from '../views'
+import { Form, TextBox } from '../views'
+import { Route } from '../routing'
 
 export function makeProgram ({ dataOptions }) {
   return withSubscriptions(
@@ -15,9 +16,10 @@ export function makeProgram ({ dataOptions }) {
   )
 }
 
-const data = ({ remote: { watchViewer, updateViewer } }) => ({
+const data = ({ router: { emit }, remote: { watchViewer, updateViewer } }) => ({
   watchViewer,
-  updateViewer
+  updateViewer,
+  goHome: emit(Route.Home({}))
 })
 
 function makeForm (viewer) {
@@ -78,7 +80,7 @@ function logic (data) {
           Msg.SavedSettings
         )
       ],
-      SavedSettings: () => [model]
+      SavedSettings: () => [model, data.goHome]
     })
   }
 
@@ -87,35 +89,6 @@ function logic (data) {
   })
 
   return { init, update, subscriptions }
-}
-
-function TextBox ({
-  isLarge,
-  isMultiLine,
-  isPassword,
-  placeholder,
-  value,
-  onValue
-}) {
-  const inputProps = {
-    className: isLarge ? 'form-control form-control-lg' : 'form-control',
-    type: isPassword ? 'password' : 'text',
-    placeholder,
-    value,
-    onChange (event) {
-      onValue(event.target.value)
-    }
-  }
-
-  return (
-    <fieldset className='form-group'>
-      {isMultiLine ? (
-        <textarea {...{ ...inputProps, rows: 8 }} />
-      ) : (
-        <input {...inputProps} />
-      )}
-    </fieldset>
-  )
 }
 
 function view (model, dispatch) {

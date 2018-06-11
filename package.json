@@ -9,6 +9,7 @@
     "raj-subscription": "0.0.2",
     "react": "^16.4.0",
     "react-dom": "^16.4.0",
+    "react-markdown": "^3.3.2",
     "react-scripts": "1.1.4",
     "tagged-routes": "0.0.3",
     "tagmeme": "0.0.7"

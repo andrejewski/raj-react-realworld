@@ -193,7 +193,10 @@ function createAPI ({ baseUrl, tokenStore, network, alerts }) {
     ),
 
     // Articles
-    getArticle: mutation(({ slug }) => ['get', `/articles/${slug}`]),
+    getArticle: mutation(
+      ({ slug }) => ['get', `/articles/${slug}`],
+      resp => resp && resp.article
+    ),
 
     getArticles: mutation(({ tag, author, favorited, limit, offset }) => [
       'get',
@@ -207,19 +210,25 @@ function createAPI ({ baseUrl, tokenStore, network, alerts }) {
       { tag, author, favorited, limit, offset }
     ]),
 
-    createArticle: mutation(({ title, description, body, tagList }) => [
-      'post',
-      '/articles',
-      null,
-      { article: { title, description, body, tagList } }
-    ]),
+    createArticle: mutation(
+      ({ title, description, body, tagList }) => [
+        'post',
+        '/articles',
+        null,
+        { article: { title, description, body, tagList } }
+      ],
+      resp => resp && resp.article
+    ),
 
-    updateArticle: mutation(({ slug, title, description, body }) => [
-      'put',
-      `/articles/${slug}`,
-      null,
-      { article: { title, description, body } }
-    ]),
+    updateArticle: mutation(
+      ({ slug, title, description, body }) => [
+        'put',
+        `/articles/${slug}`,
+        null,
+        { article: { title, description, body } }
+      ],
+      resp => resp && resp.article
+    ),
 
     deleteArticle: mutation(({ slug }) => ['delete', `/articles/${slug}`]),
 
@@ -234,22 +243,28 @@ function createAPI ({ baseUrl, tokenStore, network, alerts }) {
     ),
 
     // Comments
-    getArticleComments: mutation(({ slug }) => [
-      'get',
-      `/articles/${slug}/comments`
-    ]),
+    getArticleComments: mutation(
+      ({ slug }) => ['get', `/articles/${slug}/comments`],
+      resp => resp && resp.comments
+    ),
 
-    createArticleComment: mutation(({ slug, body }) => [
-      'post',
-      `/articles/${slug}/comments`,
-      null,
-      { comment: { body } }
-    ]),
+    createArticleComment: mutation(
+      ({ slug, body }) => [
+        'post',
+        `/articles/${slug}/comments`,
+        null,
+        { comment: { body } }
+      ],
+      resp => resp && resp.comment
+    ),
 
-    deleteArticleComment: mutation(({ slug, commentId }) => [
-      'delete',
-      `/articles/${slug}/comments/${commentId}`
-    ]),
+    deleteArticleComment: mutation(
+      ({ slug, commentId }) => [
+        'delete',
+        `/articles/${slug}/comments/${commentId}`
+      ],
+      resp => resp && resp.comment
+    ),
 
     // Tags
     getTags: mutation(() => ['get', '/tags'], resp => resp && resp.tags)

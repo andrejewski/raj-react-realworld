@@ -1,5 +1,8 @@
 import React from 'react'
+import ReactMarkdown from 'react-markdown'
 import { Route, getURLForRoute } from './routing'
+
+export const Markdown = ReactMarkdown
 
 export class Form extends React.Component {
   render () {
@@ -18,16 +21,41 @@ export class Form extends React.Component {
   }
 }
 
+export function TextBox ({
+  isLarge,
+  isMultiLine,
+  isPassword,
+  placeholder,
+  value,
+  onValue
+}) {
+  const inputProps = {
+    className: isLarge ? 'form-control form-control-lg' : 'form-control',
+    type: isPassword ? 'password' : 'text',
+    placeholder,
+    value,
+    onChange (event) {
+      onValue(event.target.value)
+    }
+  }
+
+  return (
+    <fieldset className='form-group'>
+      {isMultiLine
+        ? <textarea {...{ ...inputProps, rows: 8 }} />
+        : <input {...inputProps} />}
+    </fieldset>
+  )
+}
+
 function TabLink ({ isActive, onClick, children }) {
   return (
     <li className='nav-item'>
       <a
         {...{
           className: isActive ? 'nav-link active' : 'nav-link',
-          onClick: event => {
-            event.preventDefault()
-            onClick()
-          }
+          style: { cursor: 'pointer' },
+          onClick
         }}
       >
         {children}

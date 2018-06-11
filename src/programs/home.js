@@ -193,10 +193,8 @@ function view (model, dispatch) {
                     <a
                       {...{
                         key: tag,
-                        onClick: event => {
-                          event.preventDefault()
-                          dispatch(Msg.SelectTag(tag))
-                        },
+                        style: { cursor: 'pointer' },
+                        onClick: () => dispatch(Msg.SelectTag(tag)),
                         className: 'tag-pill tag-default'
                       }}
                     >

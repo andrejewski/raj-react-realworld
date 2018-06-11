@@ -8,9 +8,10 @@ import { makeProgram as makeLogoutProgram } from './logout'
 import { makeProgram as makeRegisterProgram } from './register'
 import { makeProgram as makeSettingsProgram } from './settings'
 import { makeProgram as makeProfileProgram } from './profile'
+import { makeProgram as makeEditorProgram } from './editor'
+import { makeProgram as makeArticleProgram } from './article'
 import { Route } from '../routing'
 import notFoundImage from '../stump.jpg'
-import notImplementedImage from '../innovation.jpg'
 
 // Test user: a@a.example.a.com / __test1234 / password
 
@@ -62,46 +63,26 @@ function makeNotFoundProgram () {
   })
 }
 
-function makeNotImplementedProgram () {
-  return viewProgram(() => {
-    return (
-      <main id='content' className='container' tabIndex='-1'>
-        <h1>Not Implemented (yet)</h1>
-        <div className='row'>
-          <img
-            src={notImplementedImage}
-            style={{
-              width: 286,
-              height: 643,
-              margin: '20px auto'
-            }}
-            alt='Waiting for this page to be birthed from PayPal money'
-          />
-        </div>
-      </main>
-    )
-  })
-}
-
 function makePageProgram ({ dataOptions }) {
   return spa({
     router: dataOptions.router,
     initialProgram: blankProgram,
     getRouteProgram (route) {
-      return Route.match(
-        route,
-        {
-          Home: () => makeHomeProgram({ dataOptions }),
-          Login: () => makeLoginProgram({ dataOptions }),
-          Logout: () => makeLogoutProgram({ dataOptions }),
-          Register: () => makeRegisterProgram({ dataOptions }),
-          NotFound: () => makeNotFoundProgram({ dataOptions }),
-          Settings: () => makeSettingsProgram({ dataOptions }),
-          Profile: ({ routeParams: { username } }) =>
-            makeProfileProgram({ dataOptions, username })
-        },
-        () => makeNotImplementedProgram({ dataOptions })
-      )
+      return Route.match(route, {
+        Home: () => makeHomeProgram({ dataOptions }),
+        Login: () => makeLoginProgram({ dataOptions }),
+        Logout: () => makeLogoutProgram({ dataOptions }),
+        Register: () => makeRegisterProgram({ dataOptions }),
+        NotFound: () => makeNotFoundProgram({ dataOptions }),
+        Settings: () => makeSettingsProgram({ dataOptions }),
+        Profile: ({ routeParams: { username } }) =>
+          makeProfileProgram({ dataOptions, username }),
+        ArticleCreate: () => makeEditorProgram({ dataOptions }),
+        ArticleEdit: ({ routeParams: { articleSlug } }) =>
+          makeEditorProgram({ dataOptions, articleSlug }),
+        ArticleView: ({ routeParams: { articleSlug } }) =>
+          makeArticleProgram({ dataOptions, articleSlug })
+      })
     }
   })
 }
