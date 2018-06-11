@@ -18,7 +18,9 @@ const createNetwork = ({ fetch }) => ({
       method,
       body: JSON.stringify(body),
       headers: { 'content-type': 'application/json', ...headers }
-    }).then(res => res.json())
+    })
+      .then(res => Promise.all([res.status, res.json()]))
+      .then(([status, payload]) => ({ status, ...payload }))
 })
 
 function createAtom (value) {
@@ -45,31 +47,37 @@ function createAtom (value) {
   }
 }
 
-function createAlertService ({ defaultAlerts }) {
-  const atom = createAtom(defaultAlerts)
-  return {
-    watchAlerts: atom.getSubscription,
-    addAlert: ({ key, type, title, description }) => {
-      atom.updateValue(alerts =>
-        alerts
-          .filter(alert => alert.key !== key)
-          .shift({ key, type, title, description })
-      )
-    },
-
-    removeAlert: ({ key }) => {
-      atom.updateValue(alerts => alerts.filter(alert => alert.key !== key))
-    }
-  }
-}
-
 function resultFromPromise (promise, dispatch) {
   return promise
     .then(data => dispatch({ data }))
     .catch(error => dispatch({ error }))
 }
 
-function createAPI ({ baseUrl, tokenStore, network, alerts }) {
+function makeUserError (message, code, data) {
+  const error = new Error(message)
+  error.code = code
+  error.data = data
+  return error
+}
+
+function findUserError (response) {
+  switch (response.status) {
+    case 401:
+      return makeUserError('Unauthorized request', 'unauthorized')
+    case 403:
+      return makeUserError('Forbidden request', 'forbidden')
+    case 404:
+      return makeUserError('Not found', 'not-found')
+    case 422:
+      return makeUserError('Validation error', 'invalid', response.errors)
+    default:
+      if (response.status >= 500) {
+        return makeUserError('Server error', 'server-error')
+      }
+  }
+}
+
+function createAPI ({ baseUrl, tokenStore, network }) {
   function mutation (getRequestFromProps, transform) {
     return props => dispatch => {
       const token = tokenStore.getToken()
@@ -85,9 +93,14 @@ function createAPI ({ baseUrl, tokenStore, network, alerts }) {
 
       const payloadPromise = responsePromise
         .catch(error => {
-          // TODO: create global alerts for network/auth errors
-          // TODO: coerce validation errors into an interface
-          throw error
+          throw makeUserError('Network error', 'network-error', error)
+        })
+        .then(response => {
+          const error = findUserError(response)
+          if (error) {
+            throw error
+          }
+          return response
         })
         .then(transform || (x => x))
 
@@ -115,14 +128,7 @@ function createAPI ({ baseUrl, tokenStore, network, alerts }) {
     }
   )()
 
-  const asEffect = fn => (...args) => () => fn(...args)
-
   return {
-    // Alerts
-    watchAlerts: alerts.watchAlerts,
-    addAlert: asEffect(alerts.addAlert),
-    removeAlert: asEffect(alerts.removeAlert),
-
     // Authentication
     signIn: mutation(
       ({ email, password }) => [
@@ -273,13 +279,11 @@ function createAPI ({ baseUrl, tokenStore, network, alerts }) {
 
 export function createRemote ({
   baseUrl,
-  defaultAlerts = [],
   fetch = window.fetch,
   storage = window.localStorage,
   storageKey = 'authToken'
 }) {
-  const alerts = createAlertService({ defaultAlerts })
   const network = createNetwork({ fetch })
   const tokenStore = createTokenStore({ storage, storageKey })
-  return createAPI({ baseUrl, alerts, network, tokenStore })
+  return createAPI({ baseUrl, network, tokenStore })
 }

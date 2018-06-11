@@ -135,3 +135,22 @@ export function TabList ({ tabs }) {
     </div>
   )
 }
+
+const errorOverlayStyles = {
+  position: 'fixed',
+  top: '0',
+  background: 'rgb(250, 250, 250)',
+  padding: '20px',
+  border: '1px solid'
+}
+
+export function ErrorOverlay ({ errors, onDismiss }) {
+  if (errors.length) {
+    return (
+      <div style={errorOverlayStyles}>
+        {errors.map(error => <p key={error}>{error}</p>)}
+        <button onClick={() => onDismiss()}>Dismiss</button>
+      </div>
+    )
+  }
+}
