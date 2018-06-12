@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "dependencies": {
     "raj-compose": "0.0.7",
-    "raj-react": "0.0.4",
+    "raj-react": "0.0.5",
     "raj-spa": "^0.0.14",
     "raj-subscription": "0.0.2",
     "react": "^16.4.0",
