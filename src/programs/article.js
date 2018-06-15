@@ -4,16 +4,19 @@ import { assembleProgram, mapEffect, batchEffects } from 'raj-compose'
 import { union } from 'tagmeme'
 import { userPicture, timestamp, Form, Markdown } from '../views'
 import { getURLForRoute, Route } from '../routing'
+import { withErrors, handleError } from '../errors'
 
 export function makeProgram ({ dataOptions, articleSlug }) {
   return withSubscriptions(
-    assembleProgram({
-      data,
-      dataOptions,
-      logic,
-      logicOptions: { articleSlug },
-      view
-    })
+    withErrors(
+      assembleProgram({
+        data,
+        dataOptions,
+        logic,
+        logicOptions: { articleSlug },
+        view
+      })
+    )
   )
 }
 
@@ -85,9 +88,17 @@ function logic (data, { articleSlug }) {
     return Msg.match(msg, {
       SetViewer: viewer => [{ ...model, viewer }],
       SetArticle: ({ error, data: article }) =>
-        (error ? [model] : [{ ...model, article }]),
+        (error
+          ? [handleError(model, error, { pageName: 'article' })]
+          : [{ ...model, article }]),
       SetArticleComments: ({ error, data: comments }) =>
-        (error ? [model] : [{ ...model, comments }]),
+        (error
+          ? [
+            handleError(model, error, {
+              attemptedAction: 'load article comments'
+            })
+          ]
+          : [{ ...model, comments }]),
       FavoriteArticle: () => [
         model,
         mapEffect(
@@ -98,7 +109,9 @@ function logic (data, { articleSlug }) {
         )
       ],
       FavoritedArticle: ({ error, data: article }) =>
-        (error ? [model] : [{ ...model, article }]),
+        (error
+          ? [handleError(model, error, { attemptedAction: 'favorite' })]
+          : [{ ...model, article }]),
       DeleteArticle: () => [
         model,
         mapEffect(
@@ -106,7 +119,10 @@ function logic (data, { articleSlug }) {
           Msg.DeletedArticle
         )
       ],
-      DeletedArticle: ({ error }) => (error ? [model] : [model, data.goHome]),
+      DeletedArticle: ({ error }) =>
+        (error
+          ? [handleError(model, error, { attemptedAction: 'delete' })]
+          : [model, data.goHome]),
       FollowUser: () => {
         const { article: { author } } = model
         const username = author.username
@@ -117,7 +133,7 @@ function logic (data, { articleSlug }) {
       },
       FollowedUser: ({ error, data: author }) =>
         (error
-          ? [model]
+          ? [handleError(model, error, { attemptedAction: 'follow' })]
           : [{ ...model, article: { ...model.article, author } }]),
       SetComment: comment => [{ ...model, comment }],
       SaveComment: () => [
@@ -129,7 +145,7 @@ function logic (data, { articleSlug }) {
       ],
       SavedComment: ({ error, data: comment }) =>
         (error
-          ? [model]
+          ? [handleError(model, error, { attemptedAction: 'comment' })]
           : [
             {
               ...model,
@@ -146,7 +162,7 @@ function logic (data, { articleSlug }) {
       ],
       DeletedComment: ({ error, commentId }) =>
         (error
-          ? [model]
+          ? [handleError(model, error, { attemptedAction: 'delete' })]
           : [
             {
               ...model,
@@ -194,7 +210,7 @@ function ArticleMeta ({
             >
             <i className='ion-edit' /> Edit Article
             </a>
-            &nbsp;&nbsp;
+            &nbsp;
           <button
             className='btn btn-outline-danger btn-sm'
             onClick={() => onDelete()}
@@ -211,17 +227,19 @@ function ArticleMeta ({
               &nbsp;
             {author.following ? 'Unfollow' : 'Follow'} {author.username}
           </button>
-            &nbsp;&nbsp;
+            &nbsp;
           <button
             className='btn btn-sm btn-outline-primary'
             onClick={() => onFavorite()}
             >
             <i className='ion-heart' />
               &nbsp;
-            {article.favorited ? 'Unfavorite' : 'Favorite'} Post
-              {' '}
-            <span className='counter'>({article.favoritesCount})</span>
-          </button>
+            {article.favorited ? 'Unfavorite' : 'Favorite'}
+            {' '}
+              Article (
+              {article.favoritesCount}
+              )
+            </button>
         </React.Fragment>}
     </div>
   )

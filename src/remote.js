@@ -19,8 +19,11 @@ const createNetwork = ({ fetch }) => ({
       body: JSON.stringify(body),
       headers: { 'content-type': 'application/json', ...headers }
     })
-      .then(res => Promise.all([res.status, res.json()]))
-      .then(([status, payload]) => ({ status, ...payload }))
+      .then(res => {
+        const safePayload = res.json().catch(() => ({}))
+        return Promise.all([res.status, safePayload])
+      })
+      .then(([status, payload]) => ({ status, payload }))
 })
 
 function createAtom (value) {
@@ -53,9 +56,9 @@ function resultFromPromise (promise, dispatch) {
     .catch(error => dispatch({ error }))
 }
 
-function makeUserError (message, code, data) {
+function makeUserError (message, type, data) {
   const error = new Error(message)
-  error.code = code
+  error.type = type
   error.data = data
   return error
 }
@@ -69,7 +72,11 @@ function findUserError (response) {
     case 404:
       return makeUserError('Not found', 'not-found')
     case 422:
-      return makeUserError('Validation error', 'invalid', response.errors)
+      return makeUserError(
+        'Validation error',
+        'invalid',
+        response.payload.errors
+      )
     default:
       if (response.status >= 500) {
         return makeUserError('Server error', 'server-error')
@@ -100,7 +107,7 @@ function createAPI ({ baseUrl, tokenStore, network }) {
           if (error) {
             throw error
           }
-          return response
+          return response.payload
         })
         .then(transform || (x => x))
 

@@ -4,16 +4,25 @@ import { withSubscriptions, mapSubscription } from 'raj-subscription'
 import { assembleProgram, mapEffect } from 'raj-compose'
 import { Form, TextBox } from '../views'
 import { Route } from '../routing'
+import {
+  withErrors,
+  handleError,
+  ValidationErrors,
+  AuthenticationGuard,
+  SimplePage
+} from '../errors'
 
 export function makeProgram ({ dataOptions, articleSlug }) {
   return withSubscriptions(
-    assembleProgram({
-      data,
-      dataOptions,
-      logic,
-      logicOptions: { articleSlug },
-      view
-    })
+    withErrors(
+      assembleProgram({
+        data,
+        dataOptions,
+        logic,
+        logicOptions: { articleSlug },
+        view
+      })
+    )
   )
 }
 
@@ -65,6 +74,7 @@ function logic (data, { articleSlug }) {
     {
       isCreating: !articleSlug,
       viewer: null,
+      article: null,
       ...makeForm()
     },
     articleSlug &&
@@ -79,7 +89,7 @@ function logic (data, { articleSlug }) {
       SetTags: tags => [{ ...model, tags }],
       SetViewer: viewer => [{ ...model, viewer }],
       SetArticle: ({ error, data: article }) =>
-        (error ? [model] : [{ ...model, ...makeForm(article) }]),
+        (error ? [model] : [{ ...model, article, ...makeForm(article) }]),
       SaveArticle: () => {
         const { title, description, body, tags } = model
         const tagList = getTagList(tags)
@@ -96,7 +106,9 @@ function logic (data, { articleSlug }) {
         return [model, mapEffect(saveEffect, Msg.SavedArticle)]
       },
       SavedArticle: ({ error, data: article }) =>
-        (error ? [model] : [model, data.gotoArticleEdit(article.slug)])
+        (error
+          ? [handleError(model, error, { attemptedAction: 'save article' })]
+          : [model, data.gotoArticleEdit(article.slug)])
     })
   }
 
@@ -107,60 +119,85 @@ function logic (data, { articleSlug }) {
   return { init, update, subscriptions }
 }
 
+function EditGuard ({ canEditArticle, children }) {
+  return canEditArticle
+    ? children
+    : <SimplePage
+      {...{
+        title: 'Error loading article',
+        description: 'Only the author of this article can edit it.'
+      }}
+      />
+}
+
 function view (model, dispatch) {
+  const authorUsername = model.article && model.article.author.username
+  const viewerUsername = model.viewer && model.viewer.username
+  const canEditArticle =
+    !authorUsername || (viewerUsername && viewerUsername === authorUsername)
+
   return (
-    <div className='settings-page'>
-      <div className='container page'>
-        <div className='row'>
-          <div className='col-md-10 offset-md-1 col-xs-12'>
-            <Form onSubmit={() => dispatch(Msg.SaveArticle())}>
-              <fieldset>
-                <TextBox
-                  {...{
-                    isLarge: true,
-                    placeholder: 'Article title',
-                    value: model.title,
-                    onValue (value) {
-                      dispatch(Msg.SetTitle(value))
-                    }
-                  }}
-                />
-                <TextBox
-                  {...{
-                    placeholder: "What's this article about?",
-                    value: model.description,
-                    onValue (value) {
-                      dispatch(Msg.SetDescription(value))
-                    }
-                  }}
-                />
-                <TextBox
-                  {...{
-                    isMultiLine: true,
-                    placeholder: 'Write your article (in markdown)',
-                    value: model.body,
-                    onValue (value) {
-                      dispatch(Msg.SetBody(value))
-                    }
-                  }}
-                />
-                <TextBox
-                  {...{
-                    placeholder: 'Enter tags',
-                    value: model.tags,
-                    onValue (value) {
-                      dispatch(Msg.SetTags(value))
-                    }
-                  }}
-                />
-                <button className='btn btn-lg btn-primary pull-xs-right'>
-                  {model.isCreating ? 'Publish Article' : 'Update Article'}
-                </button>
-              </fieldset>
-            </Form>
+    <AuthenticationGuard
+      isAuthenticated={model.viewer}
+      pageName='editor'
+      pageAction='create and edit articles'
+    >
+      <EditGuard canEditArticle={canEditArticle}>
+        <div className='settings-page'>
+          <div className='container page'>
+            <div className='row'>
+              <div className='col-md-10 offset-md-1 col-xs-12'>
+                <ValidationErrors {...model} />
+                <Form onSubmit={() => dispatch(Msg.SaveArticle())}>
+                  <fieldset>
+                    <TextBox
+                      {...{
+                        isLarge: true,
+                        placeholder: 'Article title',
+                        value: model.title,
+                        onValue (value) {
+                          dispatch(Msg.SetTitle(value))
+                        }
+                      }}
+                    />
+                    <TextBox
+                      {...{
+                        placeholder: "What's this article about?",
+                        value: model.description,
+                        onValue (value) {
+                          dispatch(Msg.SetDescription(value))
+                        }
+                      }}
+                    />
+                    <TextBox
+                      {...{
+                        isMultiLine: true,
+                        placeholder: 'Write your article (in markdown)',
+                        value: model.body,
+                        onValue (value) {
+                          dispatch(Msg.SetBody(value))
+                        }
+                      }}
+                    />
+                    <TextBox
+                      {...{
+                        placeholder: 'Enter tags',
+                        value: model.tags,
+                        onValue (value) {
+                          dispatch(Msg.SetTags(value))
+                        }
+                      }}
+                    />
+                    <button className='btn btn-lg btn-primary pull-xs-right'>
+                      {model.isCreating ? 'Publish Article' : 'Update Article'}
+                    </button>
+                  </fieldset>
+                </Form>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </EditGuard>
+    </AuthenticationGuard>
   )
 }

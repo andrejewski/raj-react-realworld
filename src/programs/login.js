@@ -4,15 +4,18 @@ import { assembleProgram, mapEffect } from 'raj-compose'
 import { withSubscriptions, mapSubscription } from 'raj-subscription'
 import { Route, getURLForRoute } from '../routing'
 import { Form } from '../views'
+import { withErrors, handleError, ValidationErrors } from '../errors'
 
 export function makeProgram ({ dataOptions }) {
   return withSubscriptions(
-    assembleProgram({
-      data,
-      dataOptions,
-      logic,
-      view
-    })
+    withErrors(
+      assembleProgram({
+        data,
+        dataOptions,
+        logic,
+        view
+      })
+    )
   )
 }
 
@@ -31,7 +34,7 @@ const Msg = union([
 ])
 
 function logic (data) {
-  const init = [{ email: '', password: '', isSigningIn: false, error: null }]
+  const init = [{ email: '', password: '', isSigningIn: false }]
 
   function update (msg, model) {
     return Msg.match(msg, {
@@ -49,11 +52,10 @@ function logic (data) {
         )
       ],
       SignedIn: ({ error }) => {
-        const newModel = { ...model, isSigningIn: false, error: null }
-        if (error) {
-          return [{ ...newModel, error }]
-        }
-        return [{ ...newModel }]
+        const newModel = { ...model, isSigningIn: false }
+        return error
+          ? [handleError(newModel, error, { attemptedAction: 'log in' })]
+          : [{ ...newModel }]
       }
     })
   }
@@ -78,12 +80,7 @@ function view (model, dispatch) {
               <a href={registerUrl}>Need an account?</a>
             </p>
 
-            {/* model.errors.length > 0 &&
-              <ul className='error-messages'>
-                {model.errors.map(error => (
-                  <li>That email is already taken</li>
-                ))}
-              </ul> */}
+            <ValidationErrors {...model} />
 
             <Form onSubmit={() => dispatch(Msg.SignIn())}>
               <fieldset className='form-group'>

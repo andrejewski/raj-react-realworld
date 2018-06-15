@@ -3,15 +3,18 @@ import { withSubscriptions, mapSubscription } from 'raj-subscription'
 import { assembleProgram, mapEffect, batchEffects } from 'raj-compose'
 import { union } from 'tagmeme'
 import { ArticleList, TabList } from '../views'
+import { withErrors, handleError } from '../errors'
 
 export function makeProgram ({ dataOptions }) {
   return withSubscriptions(
-    assembleProgram({
-      data,
-      dataOptions,
-      logic,
-      view
-    })
+    withErrors(
+      assembleProgram({
+        data,
+        dataOptions,
+        logic,
+        view
+      })
+    )
   )
 }
 
@@ -86,11 +89,14 @@ function logic (data) {
       SelectTag: tag => fetch({ ...model, ...reset, tab: 'tag', tag }),
       SelectFeed: () => fetch({ ...model, ...reset, tab: 'feed' }),
       SelectGlobal: () => fetch({ ...model, ...reset, tab: 'global' }),
-      SetTags: ({ data: tags }) => [{ ...model, tags }],
+      SetTags: ({ error, data: tags }) =>
+        (error
+          ? [handleError(model, error, { attemptedAction: 'load tags' })]
+          : [{ ...model, tags }]),
       SetViewer: viewer => [{ ...model, viewer }],
       SetArticles: ({ error, data }) =>
         (error
-          ? [model]
+          ? [handleError(model, error, { attemptedAction: 'load articles' })]
           : [
             {
               ...model,
@@ -115,7 +121,7 @@ function logic (data) {
       },
       FavoritedArticle: ({ error, data: newArticle }) =>
         (error
-          ? [model]
+          ? [handleError(model, error, { attemptedAction: 'favorite' })]
           : [
             {
               ...model,

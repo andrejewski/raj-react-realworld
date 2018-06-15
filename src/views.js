@@ -4,21 +4,18 @@ import { Route, getURLForRoute } from './routing'
 
 export const Markdown = ReactMarkdown
 
-export class Form extends React.Component {
-  render () {
-    const { onSubmit, ...formProps } = this.props
-    return (
-      <form
-        {...{
-          ...formProps,
-          onSubmit (event) {
-            event.preventDefault()
-            onSubmit()
-          }
-        }}
-      />
-    )
-  }
+export function Form ({ onSubmit, ...formProps }) {
+  return (
+    <form
+      {...{
+        ...formProps,
+        onSubmit (event) {
+          event.preventDefault()
+          onSubmit()
+        }
+      }}
+    />
+  )
 }
 
 export function TextBox ({
@@ -134,23 +131,4 @@ export function TabList ({ tabs }) {
       </ul>
     </div>
   )
-}
-
-const errorOverlayStyles = {
-  position: 'fixed',
-  top: '0',
-  background: 'rgb(250, 250, 250)',
-  padding: '20px',
-  border: '1px solid'
-}
-
-export function ErrorOverlay ({ errors, onDismiss }) {
-  if (errors.length) {
-    return (
-      <div style={errorOverlayStyles}>
-        {errors.map(error => <p key={error}>{error}</p>)}
-        <button onClick={() => onDismiss()}>Dismiss</button>
-      </div>
-    )
-  }
 }

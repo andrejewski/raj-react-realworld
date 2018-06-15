@@ -4,15 +4,18 @@ import { withSubscriptions, mapSubscription } from 'raj-subscription'
 import { assembleProgram, mapEffect } from 'raj-compose'
 import { Form, TextBox } from '../views'
 import { Route } from '../routing'
+import { withErrors, handleError, AuthenticationGuard } from '../errors'
 
 export function makeProgram ({ dataOptions }) {
   return withSubscriptions(
-    assembleProgram({
-      data,
-      dataOptions,
-      logic,
-      view
-    })
+    withErrors(
+      assembleProgram({
+        data,
+        dataOptions,
+        logic,
+        view
+      })
+    )
   )
 }
 
@@ -80,7 +83,10 @@ function logic (data) {
           Msg.SavedSettings
         )
       ],
-      SavedSettings: () => [model, data.goHome]
+      SavedSettings: ({ error }) =>
+        (error
+          ? [handleError(model, error, { attemptedAction: 'save' })]
+          : [model, data.goHome])
     })
   }
 
@@ -93,72 +99,78 @@ function logic (data) {
 
 function view (model, dispatch) {
   return (
-    <div className='settings-page'>
-      <div className='container page'>
-        <div className='row'>
-          <div className='col-md-6 offset-md-3 col-xs-12'>
-            <h1 className='text-xs-center'>Your Settings</h1>
-            <Form onSubmit={() => dispatch(Msg.SaveSettings())}>
-              <fieldset>
-                <TextBox
-                  {...{
-                    placeholder: 'URL of profile picture',
-                    value: model.image,
-                    onValue (value) {
-                      dispatch(Msg.SetImage(value))
-                    }
-                  }}
-                />
-                <TextBox
-                  {...{
-                    isLarge: true,
-                    placeholder: 'Your Name',
-                    value: model.username,
-                    onValue (value) {
-                      dispatch(Msg.SetUsername(value))
-                    }
-                  }}
-                />
-                <TextBox
-                  {...{
-                    isLarge: true,
-                    isMultiLine: true,
-                    placeholder: 'Short bio about you',
-                    value: model.bio,
-                    onValue (value) {
-                      dispatch(Msg.SetBio(value))
-                    }
-                  }}
-                />
-                <TextBox
-                  {...{
-                    isLarge: true,
-                    placeholder: 'Email',
-                    value: model.email,
-                    onValue (value) {
-                      dispatch(Msg.SetEmail(value))
-                    }
-                  }}
-                />
-                <TextBox
-                  {...{
-                    isLarge: true,
-                    isPassword: true,
-                    placeholder: 'Password',
-                    value: model.password,
-                    onValue (value) {
-                      dispatch(Msg.SetPassword(value))
-                    }
-                  }}
-                />
-                <button className='btn btn-lg btn-primary pull-xs-right'>
-                  Update Settings
-                </button>
-              </fieldset>
-            </Form>
+    <AuthenticationGuard
+      isAuthenticated={model.viewer}
+      pageName='settings'
+      pageAction='access your settings'
+    >
+      <div className='settings-page'>
+        <div className='container page'>
+          <div className='row'>
+            <div className='col-md-6 offset-md-3 col-xs-12'>
+              <h1 className='text-xs-center'>Your Settings</h1>
+              <Form onSubmit={() => dispatch(Msg.SaveSettings())}>
+                <fieldset>
+                  <TextBox
+                    {...{
+                      placeholder: 'URL of profile picture',
+                      value: model.image,
+                      onValue (value) {
+                        dispatch(Msg.SetImage(value))
+                      }
+                    }}
+                  />
+                  <TextBox
+                    {...{
+                      isLarge: true,
+                      placeholder: 'Your Name',
+                      value: model.username,
+                      onValue (value) {
+                        dispatch(Msg.SetUsername(value))
+                      }
+                    }}
+                  />
+                  <TextBox
+                    {...{
+                      isLarge: true,
+                      isMultiLine: true,
+                      placeholder: 'Short bio about you',
+                      value: model.bio,
+                      onValue (value) {
+                        dispatch(Msg.SetBio(value))
+                      }
+                    }}
+                  />
+                  <TextBox
+                    {...{
+                      isLarge: true,
+                      placeholder: 'Email',
+                      value: model.email,
+                      onValue (value) {
+                        dispatch(Msg.SetEmail(value))
+                      }
+                    }}
+                  />
+                  <TextBox
+                    {...{
+                      isLarge: true,
+                      isPassword: true,
+                      placeholder: 'Password',
+                      value: model.password,
+                      onValue (value) {
+                        dispatch(Msg.SetPassword(value))
+                      }
+                    }}
+                  />
+                  <button className='btn btn-lg btn-primary pull-xs-right'>
+                    Update Settings
+                  </button>
+                </fieldset>
+              </Form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </AuthenticationGuard>
   )
 }

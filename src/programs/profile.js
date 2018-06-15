@@ -3,16 +3,19 @@ import { withSubscriptions, mapSubscription } from 'raj-subscription'
 import { assembleProgram, mapEffect, batchEffects } from 'raj-compose'
 import { union } from 'tagmeme'
 import { ArticleList, TabList, userPicture } from '../views'
+import { withErrors, handleError } from '../errors'
 
 export function makeProgram ({ dataOptions, username }) {
   return withSubscriptions(
-    assembleProgram({
-      data,
-      dataOptions,
-      logic,
-      logicOptions: { username },
-      view
-    })
+    withErrors(
+      assembleProgram({
+        data,
+        dataOptions,
+        logic,
+        logicOptions: { username },
+        view
+      })
+    )
   )
 }
 
@@ -89,10 +92,12 @@ function logic (data, { username }) {
       SelectFavorited: () => fetch({ ...model, ...reset, tab: 'favorited' }),
       SetViewer: viewer => [{ ...model, viewer }],
       SetUser: ({ error, data: user }) =>
-        (error ? [model] : fetch({ ...model, user })),
+        (error
+          ? [handleError(model, error, { pageName: 'profile' })]
+          : fetch({ ...model, user })),
       SetArticles: ({ error, data }) =>
         (error
-          ? [model]
+          ? [handleError(model, error, { attemptedAction: 'load articles' })]
           : [
             {
               ...model,
@@ -117,7 +122,7 @@ function logic (data, { username }) {
       },
       FavoritedArticle: ({ error, data: newArticle }) =>
         (error
-          ? [model]
+          ? [handleError(model, error, { attemptedAction: 'favorite' })]
           : [
             {
               ...model,
@@ -135,7 +140,9 @@ function logic (data, { username }) {
         return [model, mapEffect(followEffect, Msg.FollowedUser)]
       },
       FollowedUser: ({ error, data: user }) =>
-        (error ? [model] : [{ ...model, user }])
+        (error
+          ? [handleError(model, error, { attemptedAction: 'follow' })]
+          : [{ ...model, user }])
     })
   }
 
