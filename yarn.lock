@@ -5806,11 +5806,11 @@ raj-compose@0.0.7:
   dependencies:
     invariant "^2.2.2"
 
-raj-react@0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/raj-react/-/raj-react-0.0.5.tgz#6d95245fe61cec98412aa86690f7378715f36cd0"
+raj-react@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/raj-react/-/raj-react-0.0.6.tgz#09842016341920f7d03f198cc8800aaaaca10064"
   dependencies:
-    raj "0.0.11"
+    raj "0.0.12"
 
 raj-spa@^0.0.14:
   version "0.0.14"
@@ -5832,9 +5832,9 @@ raj-web-debugger@0.0.3:
     raj-compose "0.0.4"
     tagmeme "0.0.6"
 
-raj@0.0.11:
-  version "0.0.11"
-  resolved "https://registry.yarnpkg.com/raj/-/raj-0.0.11.tgz#79290e812c73a536283668807a42c9be07373776"
+raj@0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/raj/-/raj-0.0.12.tgz#fb1eacd5889f0b1db715bed89b28e9810e0541e2"
 
 randomatic@^3.0.0:
   version "3.0.0"
